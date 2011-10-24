@@ -1,5 +1,10 @@
 #include "spimcore.h"
 
+//TO-DO:
+
+//need to check (and halt on) non-word-aligned PC somewhere
+//need to check (and halt on) no-word-aligned WRITE
+//need to check for non-word aligned lw and non-halfword-aligned lh
 
 /* ALU */
 /* 10 Points */
@@ -12,7 +17,8 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 /* 10 Points */
 int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 {
-
+    //this assumes Mem is byte addressable
+    *instruction = Mem[PC]
 }
 
 
@@ -73,6 +79,8 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
 /* 10 Points */
 void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char Zero,unsigned *PC)
 {
-
+    //jsec is the 26 bit immediate (bit 2 -28)
+    //*PC += 4;
+    //if(Branch && Jump) PC += extended_value;
 }
 
