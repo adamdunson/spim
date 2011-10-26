@@ -14,7 +14,8 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 /* 10 Points */
 int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 {
-	if((PC >> 2) > MEMSIZE) return 1;
+	// this should (ideally) check for word alignment and check for out-of-bounds
+	if((PC >> 2) % 4 != 0 || (PC >> 2) > MEMSIZE) return 1;
 
 	// this assumes Mem is byte addressable
 	*instruction = MEM(PC);
@@ -87,6 +88,10 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsi
 /* 15 Points */
 int instruction_decode(unsigned op,struct_controls *controls)
 {
+	// I have been going off of what the FAQ says for these values, but we should
+	// also check the logic involved as I am not entirely confident that they are
+	// correct.
+
 	// set up some nice "don't care" values for controls
 	controls.MemRead = 2;
 	controls.MemWrite = 2;
@@ -96,46 +101,39 @@ int instruction_decode(unsigned op,struct_controls *controls)
 	controls.Jump = 2;
 	controls.Branch = 2;
 	controls.MemtoReg = 2;
-	controls.ALUSrc = 2;
 
+	controls.ALUSrc = 2;
 	controls.ALUOp = 0;
 
-	switch(op) {
-		case 0x00: // R-type instructions
-			// we have a curious problem here ... how do we know what the value of
-			// funct is in order to determine control signals for R-type
-			// instructions? maybe we don't do that here?
-			controls.ALUOp = 7;
-			break;
-		case 0x03: // j
-			controls.Jump = 1;
-			break;
-		case 0x04: // beq
+	if(op == 0x00) {
+		/* R-type instructions */
+		// See FAQ, Q8 regarding what do with ALUOp for R-type instructions
+		controls.RegDst = 1;
+		controls.ALUSrc = 0;
+		controls.ALUOp = 7;
+	} else if(op == 0x03) { // j
+		controls.Jump = 1;
+	} else {
+		/* I-type instructions */
+		controls.ALUSrc = 1;
+		if(op == 0x04) { // beq
 			controls.Branch = 1;
-			break;
-		case 0x08: // addi
-			controls.ALUSrc = 1;
-			break;
-		case 0x0A: // slti
-			controls.ALUSrc = 1;
+		} else if(op == 0x08) { // addi
+		} else if(op == 0x0A) { // slti
 			controls.ALUOp = 2;
-			break;
-		case 0x0B: // sltiu
-			controls.ALUSrc = 1;
+		} else if(op == 0x0B) { // sltiu
 			controls.ALUOp = 3;
-			break;
-		case 0x0F: // lui
-			break;
-		case 0x23: // lw
+		} else if(op == 0x0F) { // lui
+		} else if(op == 0x23) { // lw
 			controls.MemRead = 1;
 			controls.RegWrite = 1;
-			break;
-		case 0x2B: // sw
+		} else if(op == 0x2B) { // sw
+			controls.RegDst = 2;
 			controls.MemWrite = 1;
 			controls.MemToReg = 1;
-			break;
-		default: // invalid instruction
+		} else { // invalid instruction
 			return 1;
+		}
 	}
 
 	return 0;
