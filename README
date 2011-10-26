@@ -1,12 +1,29 @@
-Congratulations, you've cloned the repo.
+Congratulations, you've cloned the repo. Keep any general purpose notes in here.
 
-Keep any general purpose notes in here.
+Project Directory Structure
+===========================
 
-bin/
-	placeholder for compiled binaries (don't add these to the repo)
-doc/
-	documentation (specifically, from webcourses)
-sample/
-	test.asc and test_results.txt
-src/
-	source code here (surprise, surprise!)
+	bin/
+		placeholder for compiled binaries (don't add these to the repo)
+	doc/
+		documentation (specifically, from webcourses)
+	sample/
+		test.asc and test_results.txt
+	src/
+		source code here (surprise, surprise!)
+
+
+Coding Conventions
+==================
+
+* **Please, for the love of God, use tabs for indentation!**
+	+ I prefer tabs to spaces in C, Java, and other similar languages for the
+	following reason:
+		- My tabstop and shiftwidth are set to 2 spaces. If you prefer something
+		else, it is trivial to adjust this: simply change the size of your tab
+		character.
+	+ Alternatively, we can mix and match tabs and spaces. :(
+* I have no qualms on how you wrap single-line if/else statements, loops, etc.
+	Just please be consistent, if you wouldn't mind.
+* Don't overcomment, but if you write something and its meaning isn't immediately
+	obvious, please put some comments above/beside it.

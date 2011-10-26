@@ -1,10 +1,7 @@
 #include "spimcore.h"
 
-//TO-DO:
-
-//need to check (and halt on) non-word-aligned PC somewhere
-//need to check (and halt on) no-word-aligned WRITE
-//need to check for non-word aligned lw and non-halfword-aligned lh
+// TODO:
+// figure out the rest of instruction_decode()'s control signals
 
 /* ALU */
 /* 10 Points */
@@ -17,8 +14,12 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 /* 10 Points */
 int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 {
-    //this assumes Mem is byte addressable
-    *instruction = Mem[PC]
+	if(PC > MEMSIZE) return 1;
+
+	// this assumes Mem is byte addressable
+	*instruction = Mem[PC];
+
+	return 0;
 }
 
 
@@ -26,17 +27,120 @@ int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 /* 10 Points */
 void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsigned *r2, unsigned *r3, unsigned *funct, unsigned *offset, unsigned *jsec)
 {
+	// For the following, I use an alternating (1010...) bit string to represent
+	// the value that we are trying to isolate. X's represent "don't care"s.
 
+	/* R, I, and J-type */
+	// op (bits 31-26)
+	// 1010 10XX XXXX XXXX XXXX XXXX XXXX XXXX >> 26
+	// 0000 0000 0000 0000 0000 0000 0010 1010
+	*op = instruction >> 26;
+
+	/* R and I-type */
+	// rs (bits 25-21)
+	// XXXX XX10 101X XXXX XXXX XXXX XXXX XXXX &
+	// 0000 0011 1111 1111 1111 1111 1111 1111 =
+	// 0000 0010 101X XXXX XXXX XXXX XXXX XXXX >> 21
+	// 0000 0000 0000 0000 0000 0000 000
+	*r1 = (instruction & 0x03FFFFFF) >> 21;
+
+	/* R and I-type */
+	// rt (bits 20-16)
+	// XXXX XXXX XXX1 0101 XXXX XXXX XXXX XXXX &
+	// 0000 0000 0001 1111 1111 1111 1111 1111 =
+	// 0000 0000 0001 0101 XXXX XXXX XXXX XXXX >> 16
+	// 0000 0000 0000 0000 0000 0000 0001 0101
+	*r2 = (instruction & 0x001FFFFF) >> 16;
+
+	/* R-type */
+	// rd (bits 15-11)
+	// XXXX XXXX XXXX XXXX 1010 1XXX XXXX XXXX &
+	// 0000 0000 0000 0000 1111 1111 1111 1111 =
+	// 0000 0000 0000 0000 1010 1XXX XXXX XXXX >> 11
+	// 0000 0000 0000 0000 0000 0000 0001 0101
+	*r3 = (instruction & 0x0000FFFF) >> 11;
+
+	/* R-type */
+	// funct (bits 5-0)
+	// XXXX XXXX XXXX XXXX XXXX XXXX XXX1 0101 &
+	// 0000 0000 0000 0000 0000 0000 0001 1111 =
+	// 0000 0000 0000 0000 0000 0000 0001 0101
+	*funct = instruction & 0x0000001F;
+
+	/* I-type */
+	// immediate (bits 15-0)
+	// XXXX XXXX XXXX XXXX 1010 1010 1010 1010 &
+	// 0000 0000 0000 0000 1111 1111 1111 1111 =
+	// 0000 0000 0000 0000 1010 1010 1010 1010
+	*offset = instruction & 0x0000FFFF;
+
+	/* J-type */
+	// jump address (bits 25-0)
+	// XXXX XX10 1010 1010 1010 1010 1010 1010 &
+	// 0000 0011 1111 1111 1111 1111 1111 1111 =
+	// 0000 0010 1010 1010 1010 1010 1010 1010
+	*jsec = instruction & 0x03FFFFFF;
 }
-
 
 
 /* instruction decode */
 /* 15 Points */
 int instruction_decode(unsigned op,struct_controls *controls)
 {
+	// set up some nice "don't care" values for controls
+	controls.MemRead = 2;
+	controls.MemWrite = 2;
+	controls.RegWrite = 2;
 
+	controls.RegDst = 2;
+	controls.Jump = 2;
+	controls.Branch = 2;
+	controls.MemtoReg = 2;
+	controls.ALUSrc = 2;
+
+	controls.ALUOp = 0;
+
+	switch(op) {
+		case 0x00: // R-type instructions
+			// we have a curious problem here ... how do we know what the value of
+			// funct is in order to determine control signals for R-type
+			// instructions? maybe we don't do that here?
+			controls.ALUOp = 7;
+			break;
+		case 0x03: // j
+			controls.Jump = 1;
+			break;
+		case 0x04: // beq
+			controls.Branch = 1;
+			break;
+		case 0x08: // addi
+			controls.ALUSrc = 1;
+			break;
+		case 0x0A: // slti
+			controls.ALUSrc = 1;
+			controls.ALUOp = 2;
+			break;
+		case 0x0B: // sltiu
+			controls.ALUSrc = 1;
+			controls.ALUOp = 3;
+			break;
+		case 0x0F: // lui
+			break;
+		case 0x23: // lw
+			controls.MemRead = 1;
+			controls.RegWrite = 1;
+			break;
+		case 0x2B: // sw
+			controls.MemWrite = 1;
+			controls.MemToReg = 1;
+			break;
+		default: // invalid instruction
+			return 1;
+	}
+
+	return 0;
 }
+
 
 /* Read Register */
 /* 5 Points */
@@ -53,12 +157,14 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 
 }
 
+
 /* ALU operations */
 /* 10 Points */
 int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigned funct,char ALUOp,char ALUSrc,unsigned *ALUresult,char *Zero)
 {
 
 }
+
 
 /* Read / Write Memory */
 /* 10 Points */
@@ -74,6 +180,7 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
 {
 
 }
+
 
 /* PC update */
 /* 10 Points */
