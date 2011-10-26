@@ -14,10 +14,10 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 /* 10 Points */
 int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 {
-	if(PC > MEMSIZE) return 1;
+	if((PC >> 2) > MEMSIZE) return 1;
 
 	// this assumes Mem is byte addressable
-	*instruction = Mem[PC];
+	*instruction = MEM(PC);
 
 	return 0;
 }
