@@ -201,7 +201,7 @@ void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char 
     *PC += 4;
     if(Branch && Zero) *PC += (extended_value << 2);
     //extended_value is the branch offset
-    //zero is the zeq output from the ALU
+    //zero is the zeq flag from the ALU
     //jsec is the 26 bit immediate (bit 2 -28)
 
     if(Jump){
