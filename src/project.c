@@ -2,6 +2,9 @@
 
 //same delcaration as in spimcore.c
 //we should see above moving both versions to the header
+// XXX: when we compile this and spimcore.c together, the defines will happen
+// before the code anyway, so I'm pretty sure this doesn't actually need to be
+// here...may want to verify that though.
 #define MEMSIZE (65536 >> 2)
 
 // TODO:
@@ -11,21 +14,22 @@
 /* 10 Points */
 void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 {
-
-    //ALU control
+	//ALU control
 }
 
 /* instruction fetch */
 /* 10 Points */
 int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 {
-    //TODO: check appropriate reutrn value for errors (alignment and
-    //out of bounds are considered two different errors)
+	//TODO: check appropriate reutrn value for errors (alignment and
+	//out of bounds are considered two different errors)
 
 	// this should (ideally) check for word alignment and check for out-of-bounds
 	if((PC >> 2) % 4 != 0 || (PC >> 2) >= MEMSIZE) return 1;
 
 	// Mem is an array of words and PC is the actual address value
+	// XXX: just so you're aware, MEM(PC) does the same thing as Mem[PC>>2] (see
+	// line 14 of spimcore.c).
 	*instruction = Mem[PC>>2];
 
 	return 0;
@@ -152,7 +156,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
 /* 5 Points */
 void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigned *data2)
 {
-
+	// TODO: essentially, copy the contents of Reg[r1] and Reg[r2] into data1 and data2
 }
 
 
@@ -160,11 +164,11 @@ void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigne
 /* 10 Points */
 void sign_extend(unsigned offset,unsigned *extended_value)
 {
-    //offset is a 16-bit signed value
+	//offset is a 16-bit signed value
 
-    unsigned upperByte = 0xFFFF0000;
-    if(*extended value >> 15)
-        *extended_value |= upperByte;
+	unsigned upperByte = 0xFFFF0000;
+	if(*extended value >> 15)
+		*extended_value |= upperByte;
 }
 
 
@@ -172,7 +176,6 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 /* 10 Points */
 int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigned funct,char ALUOp,char ALUSrc,unsigned *ALUresult,char *Zero)
 {
-
 }
 
 
@@ -180,9 +183,7 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 /* 10 Points */
 int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsigned *memdata,unsigned *Mem)
 {
-    //read or write if memread/mmrite are nonzero
-
-
+	//read or write if memread/mmrite are nonzero
 }
 
 
@@ -190,7 +191,9 @@ int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsig
 /* 10 Points */
 void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,char RegWrite,char RegDst,char MemtoReg,unsigned *Reg)
 {
-
+	// TODO: This one is a little more complex than read_register above. Needs to
+	// determine where it is pulling the data to write to a register (ie, from
+	// memory, from another register, or from ALUresult).
 }
 
 
@@ -198,16 +201,24 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
 /* 10 Points */
 void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char Zero,unsigned *PC)
 {
+<<<<<<< HEAD
     *PC += 4;
     if(Branch && Zero) *PC += (extended_value << 2);
     //extended_value is the branch offset
     //zero is the zeq flag from the ALU
     //jsec is the 26 bit immediate (bit 2 -28)
+=======
+	*PC += 4;
+	if(Branch && Zero) *PC += (extended_value << 2);
+	//extended_value is the branch offset
+	//zero is the zeq output from the ALU
+	//jsec is the 26 bit immediate (bit 2 -28)
+>>>>>>> 34697a3eba00c86ac86d951f07e250549a82e1a4
 
-    if(Jump){
-        PC &= 0xF0000000;
+	if(Jump){
+		PC &= 0xF0000000;
 
-    PC |= (jsec<<2);
-    }
+		PC |= (jsec<<2);
+	}
 }
 
