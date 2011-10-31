@@ -16,7 +16,7 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 /* 10 Points */
 int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 {
-	//TODO: check appropriate reutrn value for errors (alignment and
+	//TODO: check appropriate return value for errors (alignment and
 	//out of bounds are considered two different errors)
 
 	// this should (ideally) check for word alignment and check for out-of-bounds
@@ -150,13 +150,17 @@ int instruction_decode(unsigned op,struct_controls *controls)
 /* Read Register */
 /* 5 Points */
 
-//Reg is the register file (array of unsigned ints)
+// Reg is the register file (array of unsigned ints)
+// The Reg array is initialized to 0 with a memset function
+// See line 82 in spimcore.c
 // r1 and r2 are the register numbers to be loaded
 void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigned *data2)
 {
-    *data1 = r1==0 ? 0 : Reg[r1];
-	*data2 = r2==0 ? 0 : Reg[r2];
-	
+	// Reg[0] = 0 by default so we don't need to check if r1 or r2 are equal to 0
+	// may need to check for out of bounds here (or elsewhere) to make sure r1
+	// and r2 are legal
+	*data1 = Reg[r1];
+	*data2 = Reg[r2];
 }
 
 
@@ -165,7 +169,6 @@ void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigne
 void sign_extend(unsigned offset,unsigned *extended_value)
 {
 	//offset is a 16-bit signed value
-
 	unsigned upperBytes = 0xFFFF0000;
 	if(*extended_value >> 15)
 		*extended_value |= upperBytes;
@@ -184,6 +187,8 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsigned *memdata,unsigned *Mem)
 {
 	//read or write if memread/mmrite are nonzero
+	if(MemRead || MemWrite) {
+	}
 }
 
 

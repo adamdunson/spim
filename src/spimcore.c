@@ -1,5 +1,8 @@
 #include "spimcore.h"
 
+#define PCINIT 0x4000
+#define SPINIT 0xFFFC
+#define GPINIT 0xC000
 
 static unsigned Mem[MEMSIZE];
 static unsigned Reg[REGSIZE + 4];
