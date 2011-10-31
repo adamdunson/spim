@@ -5,6 +5,9 @@
 // XXX: when we compile this and spimcore.c together, the defines will happen
 // before the code anyway, so I'm pretty sure this doesn't actually need to be
 // here...may want to verify that though.
+//no, macros are performed by the preprocessor before anything else (compiling or linking)
+//I get a compiler error without the definition.
+ 
 #define MEMSIZE (65536 >> 2)
 
 // TODO:
@@ -154,9 +157,14 @@ int instruction_decode(unsigned op,struct_controls *controls)
 
 /* Read Register */
 /* 5 Points */
+
+//Reg is the register file (array of unsigned ints)
+// r1 and r2 are the register numbers to be loaded
 void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigned *data2)
 {
-	// TODO: essentially, copy the contents of Reg[r1] and Reg[r2] into data1 and data2
+    *data1 = r1==0 ? 0 : Reg[r1];
+	*data2 = r2==0 ? 0 : Reg[r2];
+	
 }
 
 
@@ -166,9 +174,9 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 {
 	//offset is a 16-bit signed value
 
-	unsigned upperByte = 0xFFFF0000;
-	if(*extended value >> 15)
-		*extended_value |= upperByte;
+	unsigned upperBytes = 0xFFFF0000;
+	if(*extended_value >> 15)
+		*extended_value |= upperBytes;
 }
 
 
@@ -204,13 +212,13 @@ void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char 
 	*PC += 4;
 	if(Branch && Zero) *PC += (extended_value << 2);
 	//extended_value is the branch offset
-	//zero is the zeq output from the ALU
-	//jsec is the 26 bit immediate (bit 2 -28)
+	//Zero is the zeq output from the ALU
+	//jsec is the 26 bit immediate (bit 2 -28 of PC)
 
 	if(Jump){
-		PC &= 0xF0000000;
+		*PC &= 0xF0000000;
 
-		PC |= (jsec<<2);
+		*PC |= (jsec<<2);
 	}
 }
 
