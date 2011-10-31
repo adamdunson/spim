@@ -1,14 +1,6 @@
 #include "spimcore.h"
 
-//same delcaration as in spimcore.c
-//we should see above moving both versions to the header
-// XXX: when we compile this and spimcore.c together, the defines will happen
-// before the code anyway, so I'm pretty sure this doesn't actually need to be
-// here...may want to verify that though.
-//no, macros are performed by the preprocessor before anything else (compiling or linking)
-//I get a compiler error without the definition.
  
-#define MEMSIZE (65536 >> 2)
 
 // TODO:
 // figure out the rest of instruction_decode()'s control signals
