@@ -201,19 +201,11 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
 /* 10 Points */
 void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char Zero,unsigned *PC)
 {
-<<<<<<< HEAD
-    *PC += 4;
-    if(Branch && Zero) *PC += (extended_value << 2);
-    //extended_value is the branch offset
-    //zero is the zeq flag from the ALU
-    //jsec is the 26 bit immediate (bit 2 -28)
-=======
 	*PC += 4;
 	if(Branch && Zero) *PC += (extended_value << 2);
 	//extended_value is the branch offset
 	//zero is the zeq output from the ALU
 	//jsec is the 26 bit immediate (bit 2 -28)
->>>>>>> 34697a3eba00c86ac86d951f07e250549a82e1a4
 
 	if(Jump){
 		PC &= 0xF0000000;
