@@ -179,6 +179,10 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 /* 10 Points */
 int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigned funct,char ALUOp,char ALUSrc,unsigned *ALUresult,char *Zero)
 {
+    //ALU src is the input to the mux for argument2 to the ALU
+    
+    
+    
 }
 
 
@@ -186,9 +190,14 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 /* 10 Points */
 int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsigned *memdata,unsigned *Mem)
 {
+<<<<<<< Updated upstream
 	//read or write if memread/mmrite are nonzero
 	if(MemRead || MemWrite) {
 	}
+=======
+    if(MemWrite) Mem[ALUresult >>2] = data2;
+    if(MemRead) *memdata = Mem[ALUresult >> 2] 
+>>>>>>> Stashed changes
 }
 
 
