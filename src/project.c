@@ -177,13 +177,10 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 {
 
     //ALU is not called from core. It looks like we will need to call it here. 
-
-	//ALU src is the input to the mux for argument2 to the ALU
 	
 	if(ALUsrc) data2 = extended_value;
 	
-	//assuming funct is the "control" value that LU needs
-	void ALU(data1,data2,funct,*ALUresult,*Zero)
+	void ALU(data1,data2,ALUOp,*ALUresult,*Zero)
 
 	
 	
