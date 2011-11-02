@@ -1,7 +1,5 @@
 #include "spimcore.h"
 
- 
-
 // TODO:
 // figure out the rest of instruction_decode()'s control signals
 
@@ -23,8 +21,6 @@ int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 	if((PC >> 2) % 4 != 0 || (PC >> 2) >= MEMSIZE) return 1;
 
 	// Mem is an array of words and PC is the actual address value
-	// XXX: just so you're aware, MEM(PC) does the same thing as Mem[PC>>2] (see
-	// line 14 of spimcore.c).
 	*instruction = Mem[PC>>2];
 
 	return 0;
@@ -179,10 +175,7 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 /* 10 Points */
 int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigned funct,char ALUOp,char ALUSrc,unsigned *ALUresult,char *Zero)
 {
-    //ALU src is the input to the mux for argument2 to the ALU
-    
-    
-    
+	//ALU src is the input to the mux for argument2 to the ALU
 }
 
 
@@ -190,14 +183,9 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 /* 10 Points */
 int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsigned *memdata,unsigned *Mem)
 {
-<<<<<<< Updated upstream
 	//read or write if memread/mmrite are nonzero
-	if(MemRead || MemWrite) {
-	}
-=======
-    if(MemWrite) Mem[ALUresult >>2] = data2;
-    if(MemRead) *memdata = Mem[ALUresult >> 2] 
->>>>>>> Stashed changes
+	if(MemWrite) Mem[ALUresult >>2] = data2;
+	if(MemRead) *memdata = Mem[ALUresult >> 2] 
 }
 
 
