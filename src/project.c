@@ -175,7 +175,18 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 /* 10 Points */
 int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigned funct,char ALUOp,char ALUSrc,unsigned *ALUresult,char *Zero)
 {
+
+    //ALU is not called from core. It looks like we will need to call it here. 
+
 	//ALU src is the input to the mux for argument2 to the ALU
+	
+	if(ALUsrc) data2 = extended_value;
+	
+	//assuming funct is the "control" value that LU needs
+	void ALU(data1,data2,funct,*ALUresult,*Zero)
+
+	
+	
 }
 
 
@@ -193,9 +204,14 @@ int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsig
 /* 10 Points */
 void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,char RegWrite,char RegDst,char MemtoReg,unsigned *Reg)
 {
-	// TODO: This one is a little more complex than read_register above. Needs to
-	// determine where it is pulling the data to write to a register (ie, from
-	// memory, from another register, or from ALUresult).
+	
+	//ASSUMPTION: Regwrite is the control signal that determines whether a 
+	//reg write will happen
+	
+	if(RegWrite)
+    	Reg[RegDst] = (MemtoReg) ? memdata : ALUresult;
+	
+	
 }
 
 
