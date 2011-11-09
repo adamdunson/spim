@@ -7,36 +7,49 @@
 /* 10 Points */
 void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 {
+    //operands are passed in as unsigned values.
+    //we will need these for operation on signed
+    //integers
+    
+    int signedA=(int) A;
+    int signedB=(int) B;
+
+    
+    
 	// called from ALU_operations
 	// this is where we calculate the result of an ALU operation (based on the ALUControl)
-	// TODO: check the logic for ALUControl 2 and 3 and make sure it works the same for both unsigned/signed slt (it should)
-	if(ALUControl == 0) {
-		*ALUResult = A + B;
-	} else if(ALUControl == 1) {
-		*ALUResult = A - B;
-	} else if(ALUControl == 2) {
-		// TODO: might need this to be more explicit? I dunno.
-		*ALUResult = (A < B) ? 0 : 1;
-	} else if(ALUControl == 3) {
-		// TODO: maybe use the following instead?
-		// *ALUResult = (A - B >= 0) ? 0 : 1;
-		*ALUResult = (A < B) ? 0 : 1;
-	} else if(ALUControl == 4) {
-		*ALUResult = A & B;
-	} else if(ALUControl == 5) {
-		*ALUResult = A | B;
-	} else if(ALUControl == 6) {
-		*ALUResult = ~A;
-	} else if(ALUControl == 7) {
-		// I'm pretty sure this is for address calculation
-		*ALUResult = B << 16;
-	}
+	switch(ALUControl==0)
+	{
+    case 0:
+        *ALUresult =signedA+signedB;
+        break;
+    case 1:
+        *ALUresult = signedA-signedB;
+        break;
+    case 2:
+        *ALUresult = signedA < signedB;
+        break;
+    //case 3 is for unsigned
+    case 3:
+        *ALUresult = A < B;
+        break;
+    case 4:
+        *ALUresult = A & B;
+        break;
+    case 5:
+        *ALUresult = A | B;
+        break;
+    case 6:
+        *ALUresult = B << 16;
+        break;
+    case 7:
+        *ALUresult = ~A;
+        break;
+    default:
+        printf("Invalid control value %d passed to the ALU.\n", ALUControl);
 
-	if(*ALUresult == 0) {
-		*Zero = 1;
-	} else {
-		*Zero = 0;
-	}
+    }
+    *Zero == !(*ALUresult);
 }
 
 /* instruction fetch */
@@ -211,7 +224,7 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 	// See item #4 (page 3) of the Final Project PDF for the possible values
 	char ALUControl = ALUOp;
 
-	if(ALUsrc) data2 = extended_value;
+	if(ALUSrc) data2 = extended_value;
 
 	// ALUOp == 7 essentially means "use the function code"
 	if(ALUOp == 7) {
