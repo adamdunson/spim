@@ -7,7 +7,36 @@
 /* 10 Points */
 void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 {
-	//ALU control
+	// called from ALU_operations
+	// this is where we calculate the result of an ALU operation (based on the ALUControl)
+	// TODO: check the logic for ALUControl 2 and 3 and make sure it works the same for both unsigned/signed slt (it should)
+	if(ALUControl == 0) {
+		*ALUResult = A + B;
+	} else if(ALUControl == 1) {
+		*ALUResult = A - B;
+	} else if(ALUControl == 2) {
+		// TODO: might need this to be more explicit? I dunno.
+		*ALUResult = (A < B) ? 0 : 1;
+	} else if(ALUControl == 3) {
+		// TODO: maybe use the following instead?
+		// *ALUResult = (A - B >= 0) ? 0 : 1;
+		*ALUResult = (A < B) ? 0 : 1;
+	} else if(ALUControl == 4) {
+		*ALUResult = A & B;
+	} else if(ALUControl == 5) {
+		*ALUResult = A | B;
+	} else if(ALUControl == 6) {
+		*ALUResult = ~A;
+	} else if(ALUControl == 7) {
+		// I'm pretty sure this is for address calculation
+		*ALUResult = B << 16;
+	}
+
+	if(*ALUresult == 0) {
+		*Zero = 1;
+	} else {
+		*Zero = 0;
+	}
 }
 
 /* instruction fetch */
@@ -173,27 +202,49 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 
 /* ALU operations */
 /* 10 Points */
+// TODO: Need to account for ALUControl = 6 and ALUControl = 7 below
 int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigned funct,char ALUOp,char ALUSrc,unsigned *ALUresult,char *Zero)
 {
+	// ALU is not called from core. It looks like we will need to call it here. 
 
-    //ALU is not called from core. It looks like we will need to call it here. 
-	
+	// ALUControl is passed to ALU(...) and determines what ALU operation to do
+	// See item #4 (page 3) of the Final Project PDF for the possible values
+	char ALUControl = ALUOp;
+
 	if(ALUsrc) data2 = extended_value;
-	
-	void ALU(data1,data2,ALUOp,*ALUresult,*Zero)
 
-	
-	
+	// ALUOp == 7 essentially means "use the function code"
+	if(ALUOp == 7) {
+		// determine ALUControl based on the funct code
+		if(funct == 0x20) { // add
+			ALUControl = 0;
+		} else if(funct == 0x22) { // sub
+			ALUControl = 1;
+		} else if(funct == 0x2A) { // slt
+			ALUControl = 2;
+		} else if(funct == 0x2B) { // sltu
+			ALUControl = 3;
+		} else if(funct == 0x24) { // and
+			ALUControl = 4;
+		} else if(funct == 0x25) { // or
+			ALUControl = 5;
+		} else { // invalid function
+			return 1;
+		}
+	}
+
+	ALU(data1, data2, ALUControl, ALUresult, Zero);
+	return 0;
 }
 
 
 /* Read / Write Memory */
 /* 10 Points */
-int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsigned *memdata,unsigned *Mem)
+int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsigned *memdata, unsigned *Mem)
 {
 	//read or write if memread/mmrite are nonzero
-	if(MemWrite) Mem[ALUresult >>2] = data2;
-	if(MemRead) *memdata = Mem[ALUresult >> 2] 
+	if(MemWrite) Mem[ALUresult >> 2] = data2;
+	if(MemRead) *memdata = Mem[ALUresult >> 2];
 }
 
 
@@ -201,14 +252,11 @@ int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsig
 /* 10 Points */
 void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,char RegWrite,char RegDst,char MemtoReg,unsigned *Reg)
 {
-	
 	//ASSUMPTION: Regwrite is the control signal that determines whether a 
 	//reg write will happen
-	
+
 	if(RegWrite)
-    	Reg[RegDst] = (MemtoReg) ? memdata : ALUresult;
-	
-	
+		Reg[RegDst] = (MemtoReg) ? memdata : ALUresult;
 }
 
 
