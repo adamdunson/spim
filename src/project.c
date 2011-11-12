@@ -7,49 +7,46 @@
 /* 10 Points */
 void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 {
-    //operands are passed in as unsigned values.
-    //we will need these for operation on signed
-    //integers
-    
-    int signedA=(int) A;
-    int signedB=(int) B;
+	//operands are passed in as unsigned values.
+	//we will need these for operation on signed
+	//integers
 
-    
-    
+	int signedA = (int)A;
+	int signedB = (int)B;
+
+
 	// called from ALU_operations
 	// this is where we calculate the result of an ALU operation (based on the ALUControl)
-	switch(ALUControl==0)
-	{
-    case 0:
-        *ALUresult =signedA+signedB;
-        break;
-    case 1:
-        *ALUresult = signedA-signedB;
-        break;
-    case 2:
-        *ALUresult = signedA < signedB;
-        break;
-    //case 3 is for unsigned
-    case 3:
-        *ALUresult = A < B;
-        break;
-    case 4:
-        *ALUresult = A & B;
-        break;
-    case 5:
-        *ALUresult = A | B;
-        break;
-    case 6:
-        *ALUresult = B << 16;
-        break;
-    case 7:
-        *ALUresult = ~A;
-        break;
-    default:
-        printf("Invalid control value %d passed to the ALU.\n", ALUControl);
-
-    }
-    *Zero == !(*ALUresult);
+	switch(ALUControl) {
+		case 0:
+			*ALUresult = signedA + signedB;
+			break;
+		case 1:
+			*ALUresult = signedA - signedB;
+			break;
+		case 2:
+			*ALUresult = signedA < signedB;
+			break;
+		//case 3 is for unsigned
+		case 3:
+			*ALUresult = A < B;
+			break;
+		case 4:
+			*ALUresult = A & B;
+			break;
+		case 5:
+			*ALUresult = A | B;
+			break;
+		case 6:
+			*ALUresult = B << 16;
+			break;
+		case 7:
+			*ALUresult = ~A;
+			break;
+		default:
+			printf("Invalid control value %d passed to the ALU.\n", ALUControl);
+	}
+	*Zero == !(*ALUresult);
 }
 
 /* instruction fetch */
@@ -216,9 +213,12 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 /* ALU operations */
 /* 10 Points */
 // TODO: Need to account for ALUControl = 6 and ALUControl = 7 below
-int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigned funct,char ALUOp,char ALUSrc,unsigned *ALUresult,char *Zero)
+int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsigned funct, char ALUOp, char ALUSrc, unsigned *ALUresult, char *Zero)
 {
 	// ALU is not called from core. It looks like we will need to call it here. 
+
+	// invalid op is anything outside the range [0, 7]
+	if(ALUOp < 0 || ALUOp > 7) return 1;
 
 	// ALUControl is passed to ALU(...) and determines what ALU operation to do
 	// See item #4 (page 3) of the Final Project PDF for the possible values
@@ -229,20 +229,27 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 	// ALUOp == 7 essentially means "use the function code"
 	if(ALUOp == 7) {
 		// determine ALUControl based on the funct code
-		if(funct == 0x20) { // add
-			ALUControl = 0;
-		} else if(funct == 0x22) { // sub
-			ALUControl = 1;
-		} else if(funct == 0x2A) { // slt
-			ALUControl = 2;
-		} else if(funct == 0x2B) { // sltu
-			ALUControl = 3;
-		} else if(funct == 0x24) { // and
-			ALUControl = 4;
-		} else if(funct == 0x25) { // or
-			ALUControl = 5;
-		} else { // invalid function
-			return 1;
+		switch(funct) {
+			case 0x20: // add
+				ALUControl = 0;
+				break;
+			case 0x22: // sub
+				ALUControl = 1;
+				break;
+			case 0x2A: // slt
+				ALUControl = 2;
+				break;
+			case 0x2B: // sltu
+				ALUControl = 3;
+				break;
+			case 0x24: // and
+				ALUControl = 4;
+				break;
+			case 0x25: // or
+				ALUControl = 5;
+				break;
+			default: // invalid function
+				return 1;
 		}
 	}
 
@@ -253,7 +260,7 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 
 /* Read / Write Memory */
 /* 10 Points */
-int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsigned *memdata, unsigned *Mem)
+int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, unsigned *memdata, unsigned *Mem)
 {
 	//read or write if memread/mmrite are nonzero
 	if(MemWrite) Mem[ALUresult >> 2] = data2;
@@ -263,7 +270,7 @@ int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsig
 
 /* Write Register */
 /* 10 Points */
-void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,char RegWrite,char RegDst,char MemtoReg,unsigned *Reg)
+void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresult, char RegWrite, char RegDst, char MemtoReg, unsigned *Reg)
 {
 	//ASSUMPTION: Regwrite is the control signal that determines whether a 
 	//reg write will happen
@@ -275,7 +282,7 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
 
 /* PC update */
 /* 10 Points */
-void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char Zero,unsigned *PC)
+void PC_update(unsigned jsec, unsigned extended_value, char Branch, char Jump, char Zero, unsigned *PC)
 {
 	*PC += 4;
 	if(Branch && Zero) *PC += (extended_value << 2);
