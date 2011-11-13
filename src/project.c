@@ -5,7 +5,7 @@
 
 /* ALU */
 /* 10 Points */
-void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
+void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zero)
 {
 	//operands are passed in as unsigned values.
 	//we will need these for operation on signed
@@ -51,7 +51,7 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 
 /* instruction fetch */
 /* 10 Points */
-int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
+int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 {
 	//TODO: check appropriate return value for errors (alignment and
 	//out of bounds are considered two different errors)
@@ -84,7 +84,7 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsi
 	// XXXX XX10 101X XXXX XXXX XXXX XXXX XXXX &
 	// 0000 0011 1111 1111 1111 1111 1111 1111 =
 	// 0000 0010 101X XXXX XXXX XXXX XXXX XXXX >> 21
-	// 0000 0000 0000 0000 0000 0000 000
+	// 0000 0000 0000 0000 0000 0000 0001 0101
 	*r1 = (instruction & 0x03FFFFFF) >> 21;
 
 	/* R and I-type */
@@ -128,7 +128,7 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsi
 
 /* instruction decode */
 /* 15 Points */
-int instruction_decode(unsigned op,struct_controls *controls)
+int instruction_decode(unsigned op, struct_controls *controls)
 {
 	// I have been going off of what the FAQ says for these values, but we should
 	// also check the logic involved as I am not entirely confident that they are
@@ -184,12 +184,11 @@ int instruction_decode(unsigned op,struct_controls *controls)
 
 /* Read Register */
 /* 5 Points */
-
 // Reg is the register file (array of unsigned ints)
 // The Reg array is initialized to 0 with a memset function
 // See line 82 in spimcore.c
 // r1 and r2 are the register numbers to be loaded
-void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigned *data2)
+void read_register(unsigned r1, unsigned r2, unsigned *Reg, unsigned *data1, unsigned *data2)
 {
 	// Reg[0] = 0 by default so we don't need to check if r1 or r2 are equal to 0
 	// may need to check for out of bounds here (or elsewhere) to make sure r1
@@ -201,7 +200,7 @@ void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigne
 
 /* Sign Extend */
 /* 10 Points */
-void sign_extend(unsigned offset,unsigned *extended_value)
+void sign_extend(unsigned offset, unsigned *extended_value)
 {
 	//offset is a 16-bit signed value
 	unsigned upperBytes = 0xFFFF0000;
@@ -262,9 +261,18 @@ int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsi
 /* 10 Points */
 int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, unsigned *memdata, unsigned *Mem)
 {
-	//read or write if memread/mmrite are nonzero
-	if(MemWrite) Mem[ALUresult >> 2] = data2;
-	if(MemRead) *memdata = Mem[ALUresult >> 2];
+	// check for memory out of bounds
+	if((ALUresult >> 2) >= MEMSIZE) return 1;
+
+	//read or write if MemRead/MemWrite are nonzero
+	if(MemRead) {
+		*memdata = Mem[ALUresult >> 2];
+	}
+	if(MemWrite) {
+		Mem[ALUresult >> 2] = data2;
+	}
+	
+	return 0;
 }
 
 
@@ -275,8 +283,12 @@ void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresu
 	//ASSUMPTION: Regwrite is the control signal that determines whether a 
 	//reg write will happen
 
-	if(RegWrite)
-		Reg[RegDst] = (MemtoReg) ? memdata : ALUresult;
+	if(RegWrite) {
+		if(RegDst)
+			Reg[r2] = (MemtoReg) ? memdata : ALUresult;
+		else
+			Reg[r3] = (MemtoReg) ? memdata : ALUresult;
+	}
 }
 
 

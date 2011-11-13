@@ -99,7 +99,6 @@ void DisplayControlSignals(void)
 }
 
 
-
 void Step(void)
 {
 	/* fetch instruction from memory */
