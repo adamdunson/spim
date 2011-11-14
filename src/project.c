@@ -22,12 +22,12 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 	// this is where we calculate the result of an ALU operation (based on the ALUControl)
 	switch(ALUControl) {
 		case 0:
-			//*ALUresult = signedA + signedB;
-			*ALUresult = A + B;
+			*ALUresult = signedA + signedB;
+			//*ALUresult = A + B;
 			break;
 		case 1:
-			//*ALUresult = signedA - signedB;
-			*ALUresult = A - B;
+			*ALUresult = signedA - signedB;
+			//*ALUresult = A - B;
 			break;
 		case 2:
 			*ALUresult = signedA < signedB;
@@ -184,8 +184,10 @@ int instruction_decode(unsigned op, struct_controls *controls)
 			controls->RegWrite = 1;
 			switch(op) {
 				case 0x04: // beq
+					controls->ALUSrc = 0;
 					controls->Branch = 1;
 					controls->RegWrite = 0;
+					controls->ALUOp = 1;
 					break;
 				case 0x08: // addi
 					break;
@@ -359,6 +361,7 @@ void PC_update(unsigned jsec, unsigned extended_value, char Branch, char Jump, c
 	if(DEBUG_PROJECT) printf("DEBUG: PC before update = 0x%X\n", *PC);
 	*PC += 4;
 
+	if(DEBUG_PROJECT) printf("DEBUG: Branch = %d, Zero = %d, Jump = %d\n", Branch, Zero, Jump);
 	if(Branch && Zero) {
 		*PC += (extended_value << 2);
 	}
