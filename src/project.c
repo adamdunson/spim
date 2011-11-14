@@ -64,6 +64,7 @@ int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 	//TODO: check appropriate return value for errors (alignment and
 	//out of bounds are considered two different errors)
 
+	if(DEBUG_PROJECT) printf("DEBUG: instruction_fetch(...)\n");
 	if(DEBUG_PROJECT) printf("DEBUG: wordalign = %d, pc = 0x%X, (pc >> 2) = 0x%X, memsize = 0x%X\n", !(PC % 4), PC, PC >> 2, MEMSIZE);
 
 	// this should (ideally) check for word alignment and check for out-of-bounds
@@ -75,6 +76,7 @@ int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 	// Mem is an array of words and PC is the actual address value
 	*instruction = Mem[PC >> 2];
 
+	if(DEBUG_PROJECT) printf("DEBUG: Done instruction_fetch(...)\n");
 	return 0;
 }
 
@@ -155,7 +157,6 @@ int instruction_decode(unsigned op, struct_controls *controls)
 	controls->RegWrite = 2;
 
 	controls->RegDst = 2;
-	controls->Branch = 2;
 
 	controls->ALUSrc = 2;
 	controls->ALUOp = 0;
@@ -164,6 +165,7 @@ int instruction_decode(unsigned op, struct_controls *controls)
 	// write_register, etc.
 	controls->MemtoReg = 0;
 	controls->Jump = 0;
+	controls->Branch = 0;
 
 	switch(op) {
 		case 0x00:
@@ -355,7 +357,9 @@ void PC_update(unsigned jsec, unsigned extended_value, char Branch, char Jump, c
 	if(DEBUG_PROJECT) printf("DEBUG: PC before update = 0x%X\n", *PC);
 	*PC += 4;
 
-	if(Branch && Zero) *PC += (extended_value << 2);
+	if(Branch && Zero) {
+		*PC += (extended_value << 2);
+	}
 
 	// extended_value is the branch offset
 	// Zero is the zeq output from the ALU
