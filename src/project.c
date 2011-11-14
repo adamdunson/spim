@@ -204,6 +204,7 @@ int instruction_decode(unsigned op, struct_controls *controls)
 					controls->RegDst = 2;
 					controls->MemWrite = 1;
 					controls->RegWrite = 0;
+					break;
 				default: // invalid instruction
 					if(DEBUG_PROJECT) printf("DEBUG: HALT!\n");
 					return 1;
