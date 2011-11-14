@@ -312,9 +312,11 @@ int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, u
 
 	//read or write if MemRead/MemWrite are nonzero
 	if(MemRead) {
+	    if(DEBUG_PROJECT) printf("Reading memory address %X, value %X.\n", ALUresult >> 2, Mem[ALUresult>>2]);
 		*memdata = Mem[ALUresult >> 2];
 	}
 	if(MemWrite) {
+	    if(DEBUG_PROJECT) printf("Reading memory address %X, value %X.\n", ALUresult >> 2, data2);
 		Mem[ALUresult >> 2] = data2;
 	}
 	
