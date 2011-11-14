@@ -152,12 +152,7 @@ int instruction_decode(unsigned op, struct_controls *controls)
 	// correct.
 
 	// set up some nice default values for controls
-	controls->MemRead = 2;
-	controls->MemWrite = 2;
-	controls->RegWrite = 2;
-
 	controls->RegDst = 2;
-
 	controls->ALUSrc = 2;
 	controls->ALUOp = 0;
 
@@ -166,6 +161,9 @@ int instruction_decode(unsigned op, struct_controls *controls)
 	controls->MemtoReg = 0;
 	controls->Jump = 0;
 	controls->Branch = 0;
+	controls->MemRead = 0;
+	controls->MemWrite = 0;
+	controls->RegWrite = 0;
 
 	switch(op) {
 		case 0x00:
@@ -176,7 +174,7 @@ int instruction_decode(unsigned op, struct_controls *controls)
 			controls->ALUSrc = 0;
 			controls->ALUOp = 7;
 			break;
-		case 0x03: // j
+		case 0x02: // j
 			controls->Jump = 1;
 			break;
 		default:
@@ -308,10 +306,12 @@ int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsi
 /* 10 Points */
 int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, unsigned *memdata, unsigned *Mem)
 {
-	// check for memory out of bounds
-	if((ALUresult >> 2) >= MEMSIZE) {
-		if(DEBUG_PROJECT) printf("DEBUG: HALT!\n");
-		return 1;
+	if(MemRead || MemWrite) {
+		// check for memory out of bounds
+		if((ALUresult >> 2) >= MEMSIZE) {
+			if(DEBUG_PROJECT) printf("DEBUG: HALT! Memory Out of bounds.\n");
+			return 1;
+		}
 	}
 
 	//read or write if MemRead/MemWrite are nonzero
