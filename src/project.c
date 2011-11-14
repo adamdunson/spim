@@ -53,7 +53,7 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 	}
 	*Zero = !(*ALUresult);
 
-	if(DEBUG_PROJECT) printf("DEBUG: ALUControl = %d, ALUresult = %d, Zero = %d\n", ALUControl, *ALUresult, *Zero);
+	if(DEBUG_PROJECT) printf("DEBUG: ALUControl = %d, ALUresult = 0x%X, Zero = %d\n", ALUControl, *ALUresult, *Zero);
 	if(DEBUG_PROJECT) printf("DEBUG: Done ALU(...)\n");
 }
 
@@ -64,6 +64,7 @@ int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 	//TODO: check appropriate return value for errors (alignment and
 	//out of bounds are considered two different errors)
 
+	if(DEBUG_PROJECT) printf("DEBUG: instruction_fetch(...)\n");
 	if(DEBUG_PROJECT) printf("DEBUG: wordalign = %d, pc = 0x%X, (pc >> 2) = 0x%X, memsize = 0x%X\n", !(PC % 4), PC, PC >> 2, MEMSIZE);
 
 	// this should (ideally) check for word alignment and check for out-of-bounds
@@ -75,6 +76,7 @@ int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 	// Mem is an array of words and PC is the actual address value
 	*instruction = Mem[PC >> 2];
 
+	if(DEBUG_PROJECT) printf("DEBUG: Done instruction_fetch(...)\n");
 	return 0;
 }
 
@@ -150,13 +152,7 @@ int instruction_decode(unsigned op, struct_controls *controls)
 	// correct.
 
 	// set up some nice default values for controls
-	controls->MemRead = 2;
-	controls->MemWrite = 2;
-	controls->RegWrite = 2;
-
 	controls->RegDst = 2;
-	controls->Branch = 2;
-
 	controls->ALUSrc = 2;
 	controls->ALUOp = 0;
 
@@ -164,6 +160,10 @@ int instruction_decode(unsigned op, struct_controls *controls)
 	// write_register, etc.
 	controls->MemtoReg = 0;
 	controls->Jump = 0;
+	controls->Branch = 0;
+	controls->MemRead = 0;
+	controls->MemWrite = 0;
+	controls->RegWrite = 0;
 
 	switch(op) {
 		case 0x00:
@@ -174,7 +174,7 @@ int instruction_decode(unsigned op, struct_controls *controls)
 			controls->ALUSrc = 0;
 			controls->ALUOp = 7;
 			break;
-		case 0x03: // j
+		case 0x02: // j
 			controls->Jump = 1;
 			break;
 		default:
@@ -306,10 +306,12 @@ int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsi
 /* 10 Points */
 int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, unsigned *memdata, unsigned *Mem)
 {
-	// check for memory out of bounds
-	if((ALUresult >> 2) >= MEMSIZE) {
-		if(DEBUG_PROJECT) printf("DEBUG: HALT!\n");
-		return 1;
+	if(MemRead || MemWrite) {
+		// check for memory out of bounds
+		if((ALUresult >> 2) >= MEMSIZE) {
+			if(DEBUG_PROJECT) printf("DEBUG: HALT! Memory Out of bounds.\n");
+			return 1;
+		}
 	}
 
 	//read or write if MemRead/MemWrite are nonzero
@@ -357,7 +359,9 @@ void PC_update(unsigned jsec, unsigned extended_value, char Branch, char Jump, c
 	if(DEBUG_PROJECT) printf("DEBUG: PC before update = 0x%X\n", *PC);
 	*PC += 4;
 
-	if(Branch && Zero) *PC += (extended_value << 2);
+	if(Branch && Zero) {
+		*PC += (extended_value << 2);
+	}
 
 	// extended_value is the branch offset
 	// Zero is the zeq output from the ALU
