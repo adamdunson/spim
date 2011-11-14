@@ -241,7 +241,7 @@ void sign_extend(unsigned offset, unsigned *extended_value)
 	// check if bit 15 is set (ie, "is this negative?")
 	// if so, set the upper 16 bits to 1
 	if(*extended_value & 0x00008000)
-		*extended_value += 0xFFFF0000;
+		*extended_value |= 0xFFFF0000;
 }
 
 
