@@ -9,7 +9,8 @@
 /* 10 Points */
 void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zero)
 {
-	if(DEBUG_PROJECT) printf("DEBUG: A = %d, B = %d\n", A, B);
+	if(DEBUG_PROJECT) printf("DEBUG: ALU(...)\n");
+	if(DEBUG_PROJECT) printf("DEBUG: A = 0x%X, B = 0x%X\n", A, B);
 
 	// operands are passed in as unsigned values.
 	// we will need these for operation on signed
@@ -53,6 +54,7 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 	*Zero = !(*ALUresult);
 
 	if(DEBUG_PROJECT) printf("DEBUG: ALUControl = %d, ALUresult = %d, Zero = %d\n", ALUControl, *ALUresult, *Zero);
+	if(DEBUG_PROJECT) printf("DEBUG: Done ALU(...)\n");
 }
 
 /* instruction fetch */
