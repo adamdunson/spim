@@ -10,10 +10,8 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 	//operands are passed in as unsigned values.
 	//we will need these for operation on signed
 	//integers
-
 	int signedA = (int)A;
 	int signedB = (int)B;
-
 
 	// called from ALU_operations
 	// this is where we calculate the result of an ALU operation (based on the ALUControl)
@@ -57,10 +55,12 @@ int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 	//out of bounds are considered two different errors)
 
 	// this should (ideally) check for word alignment and check for out-of-bounds
-	if((PC >> 2) % 4 != 0 || (PC >> 2) >= MEMSIZE) return 1;
+	if((PC >> 2) % 4 != 0 || (PC >> 2) >= MEMSIZE) {
+		return 1;
+	}
 
 	// Mem is an array of words and PC is the actual address value
-	*instruction = Mem[PC>>2];
+	*instruction = Mem[PC];
 
 	return 0;
 }
@@ -147,35 +147,45 @@ int instruction_decode(unsigned op, struct_controls *controls)
 	controls->ALUSrc = 2;
 	controls->ALUOp = 0;
 
-	if(op == 0x00) {
-		/* R-type instructions */
-		// See FAQ, Q8 regarding what do with ALUOp for R-type instructions
-		controls->RegDst = 1;
-		controls->ALUSrc = 0;
-		controls->ALUOp = 7;
-	} else if(op == 0x03) { // j
-		controls->Jump = 1;
-	} else {
-		/* I-type instructions */
-		controls->ALUSrc = 1;
-		if(op == 0x04) { // beq
-			controls->Branch = 1;
-		} else if(op == 0x08) { // addi
-		} else if(op == 0x0A) { // slti
-			controls->ALUOp = 2;
-		} else if(op == 0x0B) { // sltiu
-			controls->ALUOp = 3;
-		} else if(op == 0x0F) { // lui
-		} else if(op == 0x23) { // lw
-			controls->MemRead = 1;
-			controls->RegWrite = 1;
-		} else if(op == 0x2B) { // sw
-			controls->RegDst = 2;
-			controls->MemWrite = 1;
-			controls->MemtoReg = 1;
-		} else { // invalid instruction
-			return 1;
-		}
+	switch(op) {
+		case 0x00:
+			/* R-type instructions */
+			// See FAQ, Q8 regarding what do with ALUOp for R-type instructions
+			controls->RegDst = 1;
+			controls->ALUSrc = 0;
+			controls->ALUOp = 7;
+			break;
+		case 0x03: // j
+			controls->Jump = 1;
+			break;
+		default:
+			/* I-type instructions */
+			controls->ALUSrc = 1;
+			switch(op) {
+				case 0x04: // beq
+					controls->Branch = 1;
+					break;
+				case 0x08: // addi
+					break;
+				case 0x0A: // slti
+					controls->ALUOp = 2;
+					break;
+				case 0x0B: // sltiu
+					controls->ALUOp = 3;
+					break;
+				case 0x0F: // lui
+					break;
+				case 0x23: // lw
+					controls->MemRead = 1;
+					controls->RegWrite = 1;
+					break;
+				case 0x2B: // sw
+					controls->RegDst = 2;
+					controls->MemWrite = 1;
+					controls->MemtoReg = 1;
+				default: // invalid instruction
+					return 1;
+			}
 	}
 
 	return 0;
@@ -218,6 +228,9 @@ int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsi
 
 	// invalid op is anything outside the range [0, 7]
 	if(ALUOp < 0 || ALUOp > 7) return 1;
+
+	// check for no-op conditions
+	if(ALUOp == 7 && funct == 0) return 0;
 
 	// ALUControl is passed to ALU(...) and determines what ALU operation to do
 	// See item #4 (page 3) of the Final Project PDF for the possible values
@@ -280,14 +293,15 @@ int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, u
 /* 10 Points */
 void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresult, char RegWrite, char RegDst, char MemtoReg, unsigned *Reg)
 {
-	//ASSUMPTION: Regwrite is the control signal that determines whether a 
-	//reg write will happen
-
+	// ASSUMPTION: RegWrite is the control signal that determines whether a 
+	// reg write will happen
 	if(RegWrite) {
+		unsigned write_data = (MemtoReg ? memdata : ALUresult);
+
 		if(RegDst)
-			Reg[r2] = (MemtoReg) ? memdata : ALUresult;
+			Reg[r2] = (r2 ? write_data : 0);
 		else
-			Reg[r3] = (MemtoReg) ? memdata : ALUresult;
+			Reg[r3] = (r3 ? write_data : 0);
 	}
 }
 
@@ -298,9 +312,10 @@ void PC_update(unsigned jsec, unsigned extended_value, char Branch, char Jump, c
 {
 	*PC += 4;
 	if(Branch && Zero) *PC += (extended_value << 2);
-	//extended_value is the branch offset
-	//Zero is the zeq output from the ALU
-	//jsec is the 26 bit immediate (bit 2 -28 of PC)
+
+	// extended_value is the branch offset
+	// Zero is the zeq output from the ALU
+	// jsec is the 26 bit immediate (bit 2 -28 of PC)
 
 	if(Jump){
 		*PC &= 0xF0000000;
