@@ -207,6 +207,7 @@ int instruction_decode(unsigned op, struct_controls *controls)
 					break;
 				default: // invalid instruction
 					if(DEBUG_PROJECT) printf("DEBUG: HALT!\n");
+					printf("DEBUG: op = 0x%X!\n", op);
 					return 1;
 			}
 	}
@@ -326,7 +327,7 @@ int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, u
 void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresult, char RegWrite, char RegDst, char MemtoReg, unsigned *Reg)
 {
 	// TODO: Need to check what happens if we get passed a no-op with non-zero
-	// r2, or r3 ... I am guessing that it will (for right now) just overwrite
+	// r2 or r3 ... I am guessing that it will (for right now) just overwrite
 	// those registers with 0 (and that's bad).
 	//
 	//
