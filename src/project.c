@@ -258,7 +258,7 @@ int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsi
 
 	// invalid op is anything outside the range [0, 7]
 	if(ALUOp < 0 || ALUOp > 7) {
-		if(DEBUG_PROJECT) printf("DEBUG: HALT!\n");
+		if(DEBUG_PROJECT) printf("DEBUG: HALT! Invalid ALUop code %X.\n", ALUOp);
 		return 1;
 	}
 
