@@ -53,7 +53,7 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 	}
 	*Zero = !(*ALUresult);
 
-	if(DEBUG_PROJECT) printf("DEBUG: ALUControl = %d, ALUresult = %d, Zero = %d\n", ALUControl, *ALUresult, *Zero);
+	if(DEBUG_PROJECT) printf("DEBUG: ALUControl = %d, ALUresult = 0x%X, Zero = %d\n", ALUControl, *ALUresult, *Zero);
 	if(DEBUG_PROJECT) printf("DEBUG: Done ALU(...)\n");
 }
 
