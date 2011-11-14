@@ -116,10 +116,10 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1, uns
 
 	/* R-type */
 	// funct (bits 5-0)
-	// XXXX XXXX XXXX XXXX XXXX XXXX XXX1 0101 &
-	// 0000 0000 0000 0000 0000 0000 0001 1111 =
-	// 0000 0000 0000 0000 0000 0000 0001 0101
-	*funct = instruction & 0x0000001F;
+	// XXXX XXXX XXXX XXXX XXXX XXXX XX10 1010 &
+	// 0000 0000 0000 0000 0000 0000 0011 1111 =
+	// 0000 0000 0000 0000 0000 0000 0010 1010
+	*funct = instruction & 0x0000003F;
 
 	/* I-type */
 	// immediate (bits 15-0)
