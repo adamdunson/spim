@@ -15,22 +15,23 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 	// operands are passed in as unsigned values.
 	// we will need these for operation on signed
 	// integers
-	int signedA = (int)A;
-	int signedB = (int)B;
+	//int signedA = (int)A;
+	//int signedB = (int)B;
 
 	// called from ALU_operations
 	// this is where we calculate the result of an ALU operation (based on the ALUControl)
 	switch(ALUControl) {
 		case 0:
-			*ALUresult = signedA + signedB;
-			//*ALUresult = A + B;
+			//*ALUresult = signedA + signedB;
+			*ALUresult = A + B;
 			break;
 		case 1:
-			*ALUresult = signedA - signedB;
-			//*ALUresult = A - B;
+			//*ALUresult = signedA - signedB;
+			*ALUresult = A - B;
 			break;
 		case 2:
-			*ALUresult = signedA < signedB;
+			//*ALUresult = signedA < signedB;
+			*ALUresult = (int)A < (int)B;
 			break;
 		//case 3 is for unsigned
 		case 3:
@@ -211,7 +212,7 @@ int instruction_decode(unsigned op, struct_controls *controls)
 					break;
 				default: // invalid instruction
 					if(DEBUG_PROJECT) printf("DEBUG: HALT!\n");
-					printf("DEBUG: op = 0x%X!\n", op);
+					if(DEBUG_PROJECT) printf("DEBUG: op = 0x%X!\n", op);
 					return 1;
 			}
 	}
@@ -344,7 +345,7 @@ void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresu
 	if(RegWrite) {
 		unsigned write_data = (MemtoReg == 1 ? memdata : ALUresult);
 
-		if(DEBUG_PROJECT) printf("DEBUG: RegDst = %d, write_data = %d, r2 = %d, r3 = %d\n", RegDst, write_data, r2, r3);
+		if(DEBUG_PROJECT) printf("DEBUG: RegDst = %d, write_data = 0x%X, r2 = %d, r3 = %d\n", RegDst, write_data, r2, r3);
 
 		if(!RegDst)
 			Reg[r2] = (r2 ? write_data : 0);
