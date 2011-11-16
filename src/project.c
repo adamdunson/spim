@@ -10,7 +10,7 @@
 void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zero)
 {
 	if(DEBUG_PROJECT) printf("DEBUG: ALU(...)\n");
-	if(DEBUG_PROJECT) printf("DEBUG: A = 0x%X, B = 0x%X\n", A, B);
+	if(DEBUG_PROJECT) printf("DEBUG:     A = 0x%X, B = 0x%X\n", A, B);
 
 	// operands are passed in as unsigned values.
 	// we will need these for operation on signed
@@ -33,7 +33,6 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 			//*ALUresult = signedA < signedB;
 			*ALUresult = (int)A < (int)B;
 			break;
-		//case 3 is for unsigned
 		case 3:
 			*ALUresult = A < B;
 			break;
@@ -50,11 +49,11 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 			*ALUresult = ~A;
 			break;
 		default:
-			printf("Invalid control value %d passed to the ALU.\n", ALUControl);
+			if(DEBUG_PROJECT) printf("DEBUG:     Invalid control value %d passed to the ALU.\n", ALUControl);
 	}
 	*Zero = !(*ALUresult);
 
-	if(DEBUG_PROJECT) printf("DEBUG: ALUControl = %d, ALUresult = 0x%X, Zero = %d\n", ALUControl, *ALUresult, *Zero);
+	if(DEBUG_PROJECT) printf("DEBUG:     ALUControl = %d, ALUresult = 0x%X, Zero = %d\n", ALUControl, *ALUresult, *Zero);
 	if(DEBUG_PROJECT) printf("DEBUG: Done ALU(...)\n");
 }
 
@@ -65,12 +64,12 @@ int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 	//TODO: check appropriate return value for errors (alignment and
 	//out of bounds are considered two different errors)
 
-	if(DEBUG_PROJECT) printf("DEBUG: instruction_fetch(...)\n");
-	if(DEBUG_PROJECT) printf("DEBUG: wordalign = %d, pc = 0x%X, (pc >> 2) = 0x%X, memsize = 0x%X\n", !(PC % 4), PC, PC >> 2, MEMSIZE);
+	if(DEBUG_PROJECT) printf("\nDEBUG: instruction_fetch(...)\n");
+	if(DEBUG_PROJECT) printf("DEBUG:     wordalign = %d, pc = 0x%X, (pc >> 2) = 0x%X, memsize = 0x%X\n", !(PC % 4), PC, PC >> 2, MEMSIZE);
 
 	// this should (ideally) check for word alignment and check for out-of-bounds
 	if(PC % 4 != 0 || (PC >> 2) >= MEMSIZE) {
-		if(DEBUG_PROJECT) printf("DEBUG: HALT!\n");
+		if(DEBUG_PROJECT) printf("DEBUG:     HALT!\n");
 		return 1;
 	}
 
@@ -86,6 +85,7 @@ int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 /* 10 Points */
 void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1, unsigned *r2, unsigned *r3, unsigned *funct, unsigned *offset, unsigned *jsec)
 {
+	if(DEBUG_PROJECT) printf("DEBUG: instruction_partition(...)\n");
 	// For the following, I use an alternating (1010...) bit string to represent
 	// the value that we are trying to isolate. X's represent "don't care"s.
 
@@ -140,7 +140,8 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1, uns
 	// 0000 0010 1010 1010 1010 1010 1010 1010
 	*jsec = instruction & 0x03FFFFFF;
 
-	if(DEBUG_PROJECT) printf("DEBUG: op = 0x%X, r1 = 0x%X, r2 = 0x%X, r3 = 0x%X, funct = 0x%X, offset = 0x%X, jsec = 0x%X\n", *op, *r1, *r2, *r3, *funct, *offset, *jsec);
+	if(DEBUG_PROJECT) printf("DEBUG:     op = 0x%X, r1 = 0x%X, r2 = 0x%X, r3 = 0x%X, funct = 0x%X, offset = 0x%X, jsec = 0x%X\n", *op, *r1, *r2, *r3, *funct, *offset, *jsec);
+	if(DEBUG_PROJECT) printf("DEBUG: Done instruction_partition(...)\n");
 }
 
 
@@ -211,8 +212,8 @@ int instruction_decode(unsigned op, struct_controls *controls)
 					controls->RegWrite = 0;
 					break;
 				default: // invalid instruction
+					if(DEBUG_PROJECT) printf("DEBUG: Bad op = 0x%X!\n", op);
 					if(DEBUG_PROJECT) printf("DEBUG: HALT!\n");
-					if(DEBUG_PROJECT) printf("DEBUG: op = 0x%X!\n", op);
 					return 1;
 			}
 	}
@@ -261,7 +262,7 @@ int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsi
 
 	// invalid op is anything outside the range [0, 7]
 	if(ALUOp < 0 || ALUOp > 7) {
-		if(DEBUG_PROJECT) printf("DEBUG: HALT! Invalid ALUop code %X.\n", ALUOp);
+		if(DEBUG_PROJECT) printf("DEBUG: HALT! Invalid ALUOp code 0x%X.\n", ALUOp);
 		return 1;
 	}
 
@@ -319,14 +320,14 @@ int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, u
 
 	//read or write if MemRead/MemWrite are nonzero
 	if(MemRead) {
-	    if(DEBUG_PROJECT) printf("Reading memory address %X, value %X.\n", ALUresult >> 2, Mem[ALUresult>>2]);
+		if(DEBUG_PROJECT) printf("DEBUG: Reading memory address 0x%X, value 0x%X.\n", ALUresult >> 2, Mem[ALUresult>>2]);
 		*memdata = Mem[ALUresult >> 2];
 	}
 	if(MemWrite) {
-	    if(DEBUG_PROJECT) printf("Reading memory address %X, value %X.\n", ALUresult >> 2, data2);
+		if(DEBUG_PROJECT) printf("DEBUG: Writing memory address 0x%X, value 0x%X.\n", ALUresult >> 2, data2);
 		Mem[ALUresult >> 2] = data2;
 	}
-	
+
 	return 0;
 }
 
@@ -362,7 +363,7 @@ void PC_update(unsigned jsec, unsigned extended_value, char Branch, char Jump, c
 	if(DEBUG_PROJECT) printf("DEBUG: PC before update = 0x%X\n", *PC);
 	*PC += 4;
 
-	if(DEBUG_PROJECT) printf("DEBUG: Branch = %d, Zero = %d, Jump = %d\n", Branch, Zero, Jump);
+	if(DEBUG_PROJECT) printf("DEBUG:     Branch = %d, Zero = %d, Jump = %d\n", Branch, Zero, Jump);
 	if(Branch && Zero) {
 		*PC += (extended_value << 2);
 	}
