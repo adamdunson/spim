@@ -1,5 +1,9 @@
 #include "spimcore.h"
 
+#define MEMSIZE (65536 >> 2)
+#define REGSIZE 32
+#define BUFSIZE 256
+
 #define PCINIT 0x4000
 #define SPINIT 0xFFFC
 #define GPINIT 0xC000
@@ -97,6 +101,7 @@ void DisplayControlSignals(void)
 			controls.ALUSrc, 
 			controls.RegWrite);
 }
+
 
 
 void Step(void)

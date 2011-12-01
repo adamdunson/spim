@@ -1,9 +1,24 @@
+/**
+ * project.c
+ *
+ * @author Adam Dunson, Antonio Fluriach
+ * @version Last modified on 2011-12-01
+ *
+ * This is our final project. We have included optional debug messages, but
+ * they are disabled by default with the DEBUG_PROJECT flag.
+ *
+ * It makes more sense to define MEMSIZE in spimcore.h, but since it says we
+ * are not allowed to modify that file, we have included it here.
+ *
+ * Anything else that isn't self-explanatory should be commented below.
+ */
+
 #include "spimcore.h"
 
-#define DEBUG_PROJECT 1
+#define DEBUG_PROJECT 0
 
-// TODO:
-// figure out the rest of instruction_decode()'s control signals
+// uncomment this if MEMSIZE is not defined in spimcore.h
+#define MEMSIZE (65536 >> 2)
 
 /* ALU */
 /* 10 Points */
@@ -12,25 +27,16 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 	if(DEBUG_PROJECT) printf("DEBUG: ALU(...)\n");
 	if(DEBUG_PROJECT) printf("DEBUG:     A = 0x%X, B = 0x%X\n", A, B);
 
-	// operands are passed in as unsigned values.
-	// we will need these for operation on signed
-	// integers
-	//int signedA = (int)A;
-	//int signedB = (int)B;
-
 	// called from ALU_operations
 	// this is where we calculate the result of an ALU operation (based on the ALUControl)
 	switch(ALUControl) {
 		case 0:
-			//*ALUresult = signedA + signedB;
 			*ALUresult = A + B;
 			break;
 		case 1:
-			//*ALUresult = signedA - signedB;
 			*ALUresult = A - B;
 			break;
 		case 2:
-			//*ALUresult = signedA < signedB;
 			*ALUresult = (int)A < (int)B;
 			break;
 		case 3:
@@ -61,9 +67,6 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 /* 10 Points */
 int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 {
-	//TODO: check appropriate return value for errors (alignment and
-	//out of bounds are considered two different errors)
-
 	if(DEBUG_PROJECT) printf("\nDEBUG: instruction_fetch(...)\n");
 	if(DEBUG_PROJECT) printf("DEBUG:     wordalign = %d, pc = 0x%X, (pc >> 2) = 0x%X, memsize = 0x%X\n", !(PC % 4), PC, PC >> 2, MEMSIZE);
 
@@ -149,9 +152,7 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1, uns
 /* 15 Points */
 int instruction_decode(unsigned op, struct_controls *controls)
 {
-	// I have been going off of what the FAQ says for these values, but we should
-	// also check the logic involved as I am not entirely confident that they are
-	// correct.
+	// I have been going off of what the FAQ says for these values
 
 	// set up some nice default values for controls
 	controls->RegDst = 2;
@@ -255,7 +256,6 @@ void sign_extend(unsigned offset, unsigned *extended_value)
 
 /* ALU operations */
 /* 10 Points */
-// TODO: Need to account for ALUControl = 7 below
 int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsigned funct, char ALUOp, char ALUSrc, unsigned *ALUresult, char *Zero)
 {
 	// ALU is not called from core. It looks like we will need to call it here. 
@@ -265,9 +265,6 @@ int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsi
 		if(DEBUG_PROJECT) printf("DEBUG: HALT! Invalid ALUOp code 0x%X.\n", ALUOp);
 		return 1;
 	}
-
-	// check for no-op conditions
-	if(ALUOp == 7 && funct == 0) return 0;
 
 	// ALUControl is passed to ALU(...) and determines what ALU operation to do
 	// See item #4 (page 3) of the Final Project PDF for the possible values
@@ -312,6 +309,12 @@ int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, u
 {
 	if(MemRead || MemWrite) {
 		// check for memory out of bounds
+		if(ALUresult % 4 != 0) {
+			if(DEBUG_PROJECT) printf("DEBUG: HALT! Address not word aligned.\n");
+			return 1;
+		}
+
+		// check for memory out of bounds
 		if((ALUresult >> 2) >= MEMSIZE) {
 			if(DEBUG_PROJECT) printf("DEBUG: HALT! Memory Out of bounds.\n");
 			return 1;
@@ -336,13 +339,8 @@ int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, u
 /* 10 Points */
 void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresult, char RegWrite, char RegDst, char MemtoReg, unsigned *Reg)
 {
-	// TODO: Need to check what happens if we get passed a no-op with non-zero
-	// r2 or r3 ... I am guessing that it will (for right now) just overwrite
-	// those registers with 0 (and that's bad).
-	//
-	//
-	// ASSUMPTION: RegWrite is the control signal that determines whether a 
-	// reg write will happen
+	// RegWrite is the control signal that determines whether a reg write will
+	// happen
 	if(RegWrite) {
 		unsigned write_data = (MemtoReg == 1 ? memdata : ALUresult);
 

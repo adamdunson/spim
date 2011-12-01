@@ -2,10 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MEMSIZE (65536 >> 2)
-#define REGSIZE 32
-#define BUFSIZE 256
-
 #ifndef SPIMCORE
 
 typedef struct
